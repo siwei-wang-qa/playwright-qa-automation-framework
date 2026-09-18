@@ -26,6 +26,9 @@ The project currently covers:
 - Locator chaining and filtering
 - Structured test setup with `beforeEach`
 - Maintainable test organization
+- Authentication setup with `storageState`
+- Project-based test separation
+- Authenticated vs unauthenticated test execution
 
 ## Project Structure
 
@@ -43,7 +46,13 @@ playwright-qa-automation-framework/
 │   └── users.ts
 │
 ├── tests/
-│   └── login.spec.ts
+│   ├── auth.setup.ts
+│   ├── login.spec.ts
+│   └── products.spec.ts
+│
+├── playwright/
+│   └── .auth/
+│       └── user.json      # generated locally, not committed
 │
 ├── .github/
 │   └── workflows/
