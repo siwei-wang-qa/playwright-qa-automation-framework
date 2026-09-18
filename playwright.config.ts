@@ -35,21 +35,45 @@ export default defineConfig({
   },
 
   /* Configure projects for major browsers */
+
   projects: [
     {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+
+    {
+      name: 'login-tests',
+      testMatch: /login\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: {
+          cookies: [],
+          origins: [],
+        },
+      },
+    },
+
+    {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      testIgnore: /login\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
+    // },
 
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
+
 
     /* Test against mobile viewports. */
     // {

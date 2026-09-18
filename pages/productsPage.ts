@@ -18,14 +18,14 @@ export class ProductsPage {
 
     getProductCard(productName: string): Locator {
         return this.page
-        .locator('.inventory_item')
-        .filter({ hasText: productName });
+            .locator('.inventory_item')
+            .filter({ hasText: productName });
     }
 
     async addProductToCart(productName: string): Promise<void> {
         await this.getProductCard(productName)
-        .getByRole('button', { name: 'Add to cart' })
-        .click();
+            .getByRole('button', { name: 'Add to cart' })
+            .click();
     }
     getCartBadge(): Locator {
         return this.cartBadge;
@@ -35,5 +35,8 @@ export class ProductsPage {
         await this.cartLink.click();
     }
 
+    async goto() {
+        await this.page.goto('https://www.saucedemo.com/inventory.html');
+    }
 
 }
