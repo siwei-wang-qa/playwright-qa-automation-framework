@@ -4,8 +4,20 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        default: QA
+        type: choice
+        options:
+          - QA
+          - Staging
 jobs:
   test:
+    environment: ${{ inputs.environment || 'QA' }}
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
