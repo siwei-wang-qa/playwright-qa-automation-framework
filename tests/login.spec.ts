@@ -4,6 +4,7 @@ import { users } from '../test-data/users';
 
 test.describe('Login tests', () => {
 
+
     test.beforeEach(async ({ loginPage }) => {
 
         await loginPage.goto();
@@ -25,12 +26,12 @@ test.describe('Login tests', () => {
 
     for (const user of users.invalidUsers) {
         test(`invalid login - ${user.testName}`, async ({ loginPage }) => {
-
+            await test.step(`login with invalid credentials - ${user.testName}`, async () => {  
             await loginPage.login(user.username, user.password);
 
             await expect(loginPage.getErrorMessage()).toContainText(user.expectedError);
 
-        })
+        })})
     };
 });
 

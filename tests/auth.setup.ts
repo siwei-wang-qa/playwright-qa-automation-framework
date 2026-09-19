@@ -1,17 +1,18 @@
 import { test as setup, expect } from '@playwright/test';
-import { users } from '../test-data/users';
+import { env } from '../config/env';
 
 const authFile = 'playwright/.auth/user.json';
 
+
 setup('authenticate', async ({ page }) => {
-  await page.goto('https://www.saucedemo.com/');
+  await page.goto('/');
 
   await page.getByPlaceholder('Username').fill(
-    users.validUser.username
+    env.username
   );
 
   await page.getByPlaceholder('Password').fill(
-    users.validUser.password
+    env.password
   );
 
   await page.getByRole('button', { name: 'Login' }).click();
