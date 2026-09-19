@@ -1,46 +1,67 @@
 # Playwright QA Automation Framework
 
-This repository is an ongoing personal QA automation project built with Playwright and TypeScript.
+A hands-on QA automation project built with **Playwright** and **TypeScript**.
 
-With a background in software QA and test automation, I created this project during a career transition to stay hands-on with modern automation practices, refresh key concepts, and continue strengthening my framework design skills.
+This is an ongoing personal skill-refresh project created during a career transition to stay hands-on with modern QA automation practices and to demonstrate practical framework design for real-world web testing.
 
-The goal of this project is not simply to automate a few test cases, but to build and continuously improve a maintainable Playwright framework that reflects practical QA engineering patterns used in real-world environments.
+The project focuses not only on writing test cases, but also on building a maintainable automation framework with reusable page objects, fixtures, authentication state, environment configuration, CI/CD integration, and reporting.
 
-## Current Focus
+---
 
-The project currently covers:
+## Tech Stack
 
-- Playwright with TypeScript
-- Page Object Model (POM)
-- Custom fixtures
-- Fixture dependencies
-- Data-driven testing
-- Reusable test data
-- Smoke and regression tagging
-- Hard and soft assertions
+- Playwright
+- TypeScript
+- Node.js
+- GitHub Actions
+- dotenv
+- HTML Reporter
+
+---
+
+## Key Features
+
+- Page Object Model
+- Custom Playwright Fixtures
+- Data-Driven Testing
+- Authentication State with `storageState`
+- Environment Variable Management
+- Centralized Environment Configuration
+- GitHub Actions CI Integration
+- Test Tags such as `@smoke` and `@regression`
 - `test.step()` for readable test flows
-- Retry strategy
-- Flaky test investigation
-- Trace, screenshot, and video diagnostics
-- Test isolation
-- Locator chaining and filtering
-- Structured test setup with `beforeEach`
-- Maintainable test organization
-- Authentication setup with `storageState`
-- Project-based test separation
-- Authenticated vs unauthenticated test execution
+- Retry Configuration
+- Screenshots on Failure
+- Video Retention on Failure
+- Trace Collection
+- HTML Test Reports
+- Test Isolation
+- Project-Based Test Configuration
+
+---
 
 ## Project Structure
 
 ```text
 playwright-qa-automation-framework/
-├── pages/
-│   ├── LoginPage.ts
-│   ├── productsPage.ts
-│   └── CartPage.ts
+├── .github/
+│   └── workflows/
+│       └── playwright.yml
+│
+├── config/
+│   └── env.ts
 │
 ├── fixtures/
 │   └── testFixtures.ts
+│
+├── pages/
+│   ├── LoginPage.ts
+│   ├── ProductsPage.ts
+│   └── CartPage.ts
+│
+├── playwright/
+│   └── .auth/
+│       └── user.json
 │
 ├── test-data/
 │   └── users.ts
@@ -50,13 +71,9 @@ playwright-qa-automation-framework/
 │   ├── login.spec.ts
 │   └── products.spec.ts
 │
-├── playwright/
-│   └── .auth/
-│       └── user.json      # generated locally, not committed
-│
-├── .github/
-│   └── workflows/
-│
-├── playwright.config.ts
+├── .env.example
+├── .gitignore
 ├── package.json
+├── package-lock.json
+├── playwright.config.ts
 └── README.md
