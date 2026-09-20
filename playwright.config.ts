@@ -29,6 +29,8 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    testIdAttribute: 'data-test',
+    
   },
 
   /* Configure projects for major browsers */

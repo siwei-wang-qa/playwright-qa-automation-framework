@@ -41,3 +41,11 @@ jobs:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
+
+    - name: Upload downloaded PDF
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: order-pdf
+        path: test-results/downloads/
+        retention-days: 30
