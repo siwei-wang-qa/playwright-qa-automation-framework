@@ -37,6 +37,8 @@ A practical **Playwright + TypeScript** QA automation project focused on maintai
 - Update a product field with PATCH
 - Delete a product and validate deletion status
 - Validate status codes, response bodies, data types, and business values
+- Authentication flow with login and Bearer token
+- Positive and negative authentication scenarios
 
 ## Framework Structure
 
