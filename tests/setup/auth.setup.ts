@@ -1,5 +1,5 @@
 import { test as setup, expect } from '@playwright/test';
-import { env } from '../config/env';
+import { env } from '../../config/env';
 
 const authFile = 'playwright/.auth/user.json';
 

@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
-import { test } from '../fixtures/testFixtures';
-import { checkoutData, invalidCheckoutCases } from '../test-data/checkoutData';
+import { test } from '../../fixtures/testFixtures';
+import { checkoutData, invalidCheckoutCases } from '../../test-data/checkoutData';
 
 test.describe('Checkout tests with invalid information', () => {
 

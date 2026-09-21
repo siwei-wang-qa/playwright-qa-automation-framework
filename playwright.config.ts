@@ -30,7 +30,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     testIdAttribute: 'data-test',
-    
+
   },
 
   /* Configure projects for major browsers */
@@ -55,13 +55,24 @@ export default defineConfig({
 
     {
       name: 'chromium',
-      testIgnore: /login\.spec\.ts/,
+      testIgnore: [
+        /login\.spec\.ts/,
+        /.*\.api\.spec\.ts/,
+      ],
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
     },
+
+    {
+      name: 'api',
+      testMatch: /.*\.api\.spec\.ts/,
+      use: {
+        baseURL: env.apiBaseURL
+      }
+    }
 
     // {
     //   name: 'firefox',

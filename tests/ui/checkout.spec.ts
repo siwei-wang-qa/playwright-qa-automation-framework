@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
-import { test } from '../fixtures/testFixtures';
-import { checkoutData } from '../test-data/checkoutData';
-import { completeCheckout } from '../helpers/checkoutFlow';
+import { test } from '../../fixtures/testFixtures';
+import { checkoutData } from '../../test-data/checkoutData';
+import { completeCheckout } from '../../helpers/checkoutFlow';
 import fs from 'fs';
 
 test.describe('Checkout tests', () => {
