@@ -18,6 +18,8 @@ A practical **Playwright + TypeScript** automation project focused on UI testing
 - QA / Staging environments
 - Secrets-based configuration
 - HTML reports and test artifacts
+- Playwright network mocking
+- Mocked API success and error responses
 
 ## Test Coverage
 
@@ -47,6 +49,13 @@ A practical **Playwright + TypeScript** automation project focused on UI testing
 - Inject token into browser cookie
 - Verify booking in Admin UI
 - Clean up booking through API with `finally`
+
+### Network Mocking
+- Intercept browser API requests with `page.route()`
+- Return mocked JSON responses with `route.fulfill()`
+- Validate UI behavior with mocked API data
+- Mock HTTP 500 responses
+- Validate UI fallback and error handling
 
 ## Project Structure
 

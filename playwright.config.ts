@@ -55,11 +55,7 @@ export default defineConfig({
 
     {
       name: 'chromium',
-      testIgnore: [
-        /login\.spec\.ts/,
-        /.*\.api\.spec\.ts/,
-        /.*\.integration\.spec\.ts/,
-      ],
+      testMatch: /ui\/.*\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'playwright/.auth/user.json',
@@ -78,6 +74,14 @@ export default defineConfig({
     {
       name: 'integration',
       testMatch: /.*\.integration\.spec\.ts/,
+      use: {
+        baseURL: env.bookerUiBaseURL,
+      },
+    },
+
+    {
+      name: 'network-mocking',
+      testMatch: /networking\/.*\.spec\.ts/,
       use: {
         baseURL: env.bookerUiBaseURL,
       },
