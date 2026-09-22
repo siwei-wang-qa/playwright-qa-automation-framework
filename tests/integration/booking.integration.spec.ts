@@ -65,6 +65,15 @@ test.describe('Booking API + UI Integration', () => {
                 })
 
                 await test.step('Verify the booking order on UI', async () => {
+                    if (
+                        token === undefined ||
+                        bookingRoomId === undefined ||
+                        checkin === undefined ||
+                        checkout === undefined
+                    ) {
+                        throw new Error('Booking setup data is missing');
+                    }
+
                     await page.context().addCookies([
                         {
                             name: 'token',
