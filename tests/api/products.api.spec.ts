@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { apiProductData } from '../../test-data/apiProductData';
+import { productSchema } from '../../schemas/productSchema';
 
 test.describe('Products API', () => {
 
@@ -13,7 +14,7 @@ test.describe('Products API', () => {
         expect(response.ok()).toBeTruthy();
 
         const body = await response.json();
-
+        productSchema.parse(body);
         expect(body.id).toBe(apiProductData.existingProductId);
         expect(body.title).toBeTruthy();
         expect(typeof body.price).toBe('number');
@@ -57,7 +58,7 @@ test.describe('Products API', () => {
 
     test('should update only the specified product field', async ({ request }) => {
 
-        
+
         const response = await request.patch(`/products/${apiProductData.existingProductId}`,
             {
                 data: { price: apiProductData.updateProduct.price }

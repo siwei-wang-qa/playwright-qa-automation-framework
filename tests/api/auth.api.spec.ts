@@ -55,4 +55,48 @@ test.describe('Authentication API', () => {
         expect(body.message).toBeTruthy();
     });
 
+    test('should reject login without a password', async ({ request }) => {
+
+
+        const response = await request.post('/auth/login', {
+            data: {
+                username: apiAuthData.validUser.username,
+            },
+        });
+
+        const body = await response.json();
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+        expect(body.message).toBe("Username and password required");
+    });
+
+    test('should reject access with an invalid token', { tag: ['@debug'] }, async ({ request }) => {
+
+        const response = await request.post('/auth/login', {
+            data: {
+                username: apiAuthData.validUser.username,
+                password: apiAuthData.validUser.password,
+            },
+        })
+        const body = await response.json();
+
+        expect(response.ok()).toBeTruthy();
+        expect(response.status()).toBe(200);
+        expect(body.accessToken).toBeTruthy();
+
+        const accessToken = body.accessToken;
+        const invalidToken = `${accessToken}11111`;
+        const userResponse = await request.get('/auth/me', {
+            headers: {
+                Authorization: `Bearer ${invalidToken}`,
+            },
+        });
+
+        const userBody = await userResponse.json();
+        expect(userResponse.ok()).toBeFalsy();
+        expect(userResponse.status()).toBe(500);
+
+        expect(userBody.message).toBe("invalid signature");
+
+    })
 });

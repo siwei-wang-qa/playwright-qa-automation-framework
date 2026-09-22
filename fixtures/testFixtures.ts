@@ -5,6 +5,7 @@ import { CartPage } from '../pages/CartPage';
 import { CheckoutPage } from '../pages/CheckoutPage';
 import { CheckoutOverviewPage } from '../pages/CheckoutOverviewPage';
 import { CheckoutCompletePage } from '../pages/CheckoutCompletePage';
+import { AdminRoomPage } from '../pages/AdminRoomPage';
 
 type MyFixtures = {
     loginPage: LoginPage;
@@ -13,6 +14,7 @@ type MyFixtures = {
     checkoutPage: CheckoutPage;
     checkoutOverviewPage: CheckoutOverviewPage;
     checkoutCompletePage: CheckoutCompletePage;
+    adminRoomPage: AdminRoomPage;
 
 };
 
@@ -42,6 +44,10 @@ export const test = base.extend<MyFixtures>({
     checkoutCompletePage: async ({ page }, use) => {
         const checkoutCompletePage = new CheckoutCompletePage(page);
         await use(checkoutCompletePage);
+    },
+    adminRoomPage: async ({ page }, use) => {
+        const adminRoomPage = new AdminRoomPage(page);
+        await use(adminRoomPage);
     },
 
 });

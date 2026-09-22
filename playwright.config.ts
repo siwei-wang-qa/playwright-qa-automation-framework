@@ -58,6 +58,7 @@ export default defineConfig({
       testIgnore: [
         /login\.spec\.ts/,
         /.*\.api\.spec\.ts/,
+        /.*\.integration\.spec\.ts/,
       ],
       use: {
         ...devices['Desktop Chrome'],
@@ -72,8 +73,15 @@ export default defineConfig({
       use: {
         baseURL: env.apiBaseURL
       }
-    }
+    },
 
+    {
+      name: 'integration',
+      testMatch: /.*\.integration\.spec\.ts/,
+      use: {
+        baseURL: env.bookerUiBaseURL,
+      },
+    },
     // {
     //   name: 'firefox',
     //   use: { ...devices['Desktop Firefox'] },

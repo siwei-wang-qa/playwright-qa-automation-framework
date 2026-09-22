@@ -1,19 +1,21 @@
 # Playwright QA Automation Framework
 
-A practical **Playwright + TypeScript** QA automation project focused on maintainable framework design, realistic end-to-end testing, API validation, and CI integration.
+A practical **Playwright + TypeScript** automation project focused on maintainable framework design, UI/API coverage, cross-layer validation, and CI integration.
 
 ## Highlights
 
 - Playwright + TypeScript with Page Object Model and custom fixtures
 - Reusable authentication with `storageState`
 - Data-driven testing and centralized test data
-- Full UI checkout flow with multi-item and remove-item scenarios
+- UI, API, setup, and integration test projects
+- Full checkout flow with multi-item and remove-item scenarios
 - Price, tax, and total calculation validation
 - PDF download and file validation
-- API testing with GET, POST, PATCH, and DELETE
-- Positive and negative API scenarios
-- Separate UI, API, and setup test projects
-- GitHub Actions CI/CD with QA/Staging environments and Secrets
+- API CRUD and negative testing
+- Token-based API authentication
+- Zod response contract validation
+- API + UI integration with API setup, UI verification, and API cleanup
+- GitHub Actions CI with QA/Staging environments and Secrets
 
 ## Automated Flows
 
@@ -25,20 +27,27 @@ A practical **Playwright + TypeScript** QA automation project focused on maintai
 - Required-field validation
 - Cancel checkout behavior
 - Multi-item checkout
-- Remove-item state validation through checkout
+- Remove-item validation through checkout
 - Order completion
-- PDF receipt download and file validation
+- PDF receipt download validation
 
 ### API
 
-- Get product details by ID
-- Create product with valid data
-- Validate 404 response for a non-existent product
-- Update a product field with PATCH
-- Delete a product and validate deletion status
-- Validate status codes, response bodies, data types, and business values
-- Authentication flow with login and Bearer token
-- Positive and negative authentication scenarios
+- GET, POST, PATCH, and DELETE product scenarios
+- 404 and invalid payload validation
+- Login and Bearer-token authentication
+- Protected endpoint validation
+- Invalid and tampered token scenarios
+- Response contract validation with Zod
+
+### API + UI Integration
+
+- Authenticate through API
+- Create booking test data through API
+- Inject authentication token into the browser session
+- Open the related Admin UI
+- Verify the API-created booking in the UI
+- Clean up the booking through API in `finally`
 
 ## Framework Structure
 
@@ -46,17 +55,21 @@ A practical **Playwright + TypeScript** QA automation project focused on maintai
 - `fixtures/` → reusable Playwright fixtures
 - `helpers/` → reusable business flows
 - `pages/` → Page Object Model
-- `test-data/` → UI and API test data
+- `schemas/` → API response schemas
+- `test-data/` → reusable UI/API test data
 - `tests/ui/` → browser UI tests
 - `tests/api/` → API tests
+- `tests/integration/` → API + UI integration tests
 - `tests/setup/` → authentication setup
 
 ## Environment Configuration
 
-The project uses separate configuration for UI and API targets:
+The framework uses separate UI, API, and integration environment configuration.
 
-## Text
+## text
 BASE_URL
 API_BASE_URL
+BOOKER_UI_BASE_URL
+BOOKER_API_BASE_URL
 TEST_USERNAME
 TEST_PASSWORD
