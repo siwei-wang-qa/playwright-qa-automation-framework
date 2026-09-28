@@ -1,6 +1,8 @@
 import { expect } from '@playwright/test';
 import { bookerData } from '../../test-data/bookerData';
 import { test } from '../../fixtures/testFixtures';
+import { log } from 'node:console';
+import { env } from '../../config/env';
 
 test.describe('Booking API + UI Integration', () => {
     test('should create a booking via API, verify it in Admin UI, and clean it up',
@@ -24,7 +26,7 @@ test.describe('Booking API + UI Integration', () => {
                         },
                     })
                     const loginBody = await response.json();
-
+                    console.log(loginBody);
                     token = loginBody.token;
                     console.log(loginBody.token);
                 })
@@ -73,12 +75,13 @@ test.describe('Booking API + UI Integration', () => {
                     ) {
                         throw new Error('Booking setup data is missing');
                     }
+                    const bookerApiDomain = new URL(env.bookerApiBaseURL).hostname;
 
                     await page.context().addCookies([
                         {
                             name: 'token',
                             value: token,
-                            domain: 'automationintesting.online',
+                            domain: bookerApiDomain,
                             path: '/',
                         },
                     ]);

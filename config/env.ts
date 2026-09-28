@@ -18,6 +18,10 @@ if (!apiBaseURL) {
     throw new Error('Missing API required environment variables');
 }
 
+if (!bookerUiBaseURL || !bookerApiBaseURL) {
+  throw new Error('Missing Booker required environment variables');
+}
+
 export const env = {
     baseURL,
     username,
