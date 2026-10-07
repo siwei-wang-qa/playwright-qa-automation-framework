@@ -1,0 +1,6 @@
+{
+  "success": true,
+  "exitCode": 0,
+  "stdout": "\nRunning 4 tests using 1 worker\n\n  ✓  1 ai-agents\\runs\\login-story-20261007-151742\\generated.spec.ts:6:9 › Login › TC-01: valid registered user can log in successfully (28.2s)\n  ✓  2 ai-agents\\runs\\login-story-20261007-151742\\generated.spec.ts:20:13 › Login › TC-02: login fails with invalid username and invalid password (1.7s)\n  ✓  3 ai-agents\\runs\\login-story-20261007-151742\\generated.spec.ts:20:13 › Login › TC-02: login fails with valid username and invalid password (977ms)\n  ✓  4 ai-agents\\runs\\login-story-20261007-151742\\generated.spec.ts:20:13 › Login › TC-02: login fails with invalid username and valid password (718ms)\n\n  4 passed (1.1m)\n",
+  "stderr": "◇ injected env (0) from .env\n◇ injected env (0) from .env\n"
+}

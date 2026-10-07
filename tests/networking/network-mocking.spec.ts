@@ -6,6 +6,10 @@ test.describe('Network Mocking', () => {
         await page.route('**/api/branding', async route => {
             //console.log('Mock intercepted:', route.request().url());
 
+            if (route.request().method() !== 'GET') {
+                return route.continue();
+            }
+
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',

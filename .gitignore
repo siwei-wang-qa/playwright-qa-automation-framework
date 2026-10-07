@@ -7,3 +7,9 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 .env
+# AI Agent runtime artifacts
+ai-agents/runs/*
+
+# Keep one sanitized sample run for portfolio/demo purposes
+!ai-agents/runs/login-story-sample/
+!ai-agents/runs/login-story-sample/**

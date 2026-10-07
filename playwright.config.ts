@@ -26,7 +26,7 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     baseURL: env.baseURL,
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure-and-retries',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     testIdAttribute: 'data-test',
