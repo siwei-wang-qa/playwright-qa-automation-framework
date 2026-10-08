@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'fs/promises';
+import { readFile, writeFile, readdir } from 'fs/promises';
 import path from 'path';
 import { createRunContext } from './utils/createRunContext';
 import { planRequirement } from './agents/plannerAgent';
@@ -25,83 +25,91 @@ import { analyzeRun } from './agents/analyzerAgent';
 
 async function main() {
 
-    const requirementPath =
-        'ai-agents/requirements/login-story.md';
+    const requirementsDir =
+        'ai-agents/requirements';
 
-    const requirementName =
-        path.parse(requirementPath).name;
+    const requirementFiles =
+        (await readdir(requirementsDir)).filter(file => file.endsWith('.md'));;
 
-    const requirement =
-        await readFile(
-            requirementPath,
+    for (const requirementFile of requirementFiles) {
+        const requirementPath =
+            path.join(requirementsDir, requirementFile);
+
+        const requirementName =
+            path.parse(requirementPath).name;
+
+        const requirement =
+            await readFile(
+                requirementPath,
+                'utf-8'
+            );
+
+        const runContext =
+            await createRunContext(
+                requirementName,
+                requirementPath
+            );
+
+        console.log(
+            `Workflow started: ${runContext.runId}`
+        );
+
+        const plannerResult =
+            await planRequirement(
+                requirement,
+                runContext
+            );
+
+        const generatorResult =
+            await generateTests(
+                plannerResult.testPlan,
+                runContext
+            );
+
+        const runnerResult =
+            await runPlaywright(
+                generatorResult.testSpecPath
+            );
+
+        await writeFile(
+            path.join(
+                runContext.runDir,
+                'runner-result.json'
+            ),
+            JSON.stringify(
+                runnerResult,
+                null,
+                2
+            ),
             'utf-8'
         );
 
-    const runContext =
-        await createRunContext(
-            requirementName,
-            requirementPath
+        const analysis =
+            await analyzeRun({
+                requirement,
+                testPlan: plannerResult.testPlan,
+                generatedTest: generatorResult.testSpec,
+                runnerResult,
+            });
+
+        await writeFile(
+            path.join(
+                runContext.runDir,
+                'analysis.json'
+            ),
+            JSON.stringify(
+                analysis,
+                null,
+                2
+            ),
+            'utf-8'
         );
 
-    console.log(
-        `Workflow started: ${runContext.runId}`
-    );
-
-    const plannerResult =
-        await planRequirement(
-            requirement,
-            runContext
+        console.log(
+            'Analysis:',
+            analysis
         );
-
-    const generatorResult =
-        await generateTests(
-            plannerResult.testPlan,
-            runContext
-        );
-
-    const runnerResult =
-        await runPlaywright(
-            generatorResult.testSpecPath
-        );
-
-    await writeFile(
-        path.join(
-            runContext.runDir,
-            'runner-result.json'
-        ),
-        JSON.stringify(
-            runnerResult,
-            null,
-            2
-        ),
-        'utf-8'
-    );
-
-    const analysis =
-        await analyzeRun({
-            requirement,
-            testPlan: plannerResult.testPlan,
-            generatedTest: generatorResult.testSpec,
-            runnerResult,
-        });
-
-    await writeFile(
-        path.join(
-            runContext.runDir,
-            'analysis.json'
-        ),
-        JSON.stringify(
-            analysis,
-            null,
-            2
-        ),
-        'utf-8'
-    );
-
-    console.log(
-        'Analysis:',
-        analysis
-    );
+    }
 }
 
 main().catch((error) => {
