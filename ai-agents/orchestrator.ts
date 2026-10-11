@@ -29,7 +29,7 @@ async function main() {
         'ai-agents/requirements';
 
     const requirementFiles =
-        (await readdir(requirementsDir)).filter(file => file.endsWith('.md'));;
+        (await readdir(requirementsDir)).filter(file => file.endsWith('.md'));
 
     for (const requirementFile of requirementFiles) {
         const requirementPath =

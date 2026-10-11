@@ -13,3 +13,12 @@ ai-agents/runs/*
 # Keep one sanitized sample run for portfolio/demo purposes
 !ai-agents/runs/login-story-sample/
 !ai-agents/runs/login-story-sample/**
+
+# Playwright MCP runtime artifacts
+.playwright-mcp/
+
+# MCP Testing batch results
+mcp-testing/runs/*
+
+# MCP learning / debugging
+mcp-testing/mcpClientTest.ts

@@ -234,36 +234,6 @@ tests/setup/          Authentication setup
 
 ---
 
-## Running the Project
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Create a local `.env` file based on:
-
-```text
-.env.example
-```
-
-Run the regular Playwright test suite:
-
-```bash
-npx playwright test
-```
-
-Run the AI QA Agent workflow:
-
-```bash
-npx tsx ai-agents/orchestrator.ts
-```
-
-The AI workflow requires an OpenAI API key configured through the local environment.
-
----
-
 ## Security
 
 Secrets and local credentials are stored in `.env` and are excluded from Git.
@@ -280,16 +250,34 @@ Only placeholder configuration should be committed in `.env.example`.
 
 ---
 
-## Planned Enhancement
+## MCP-Based Agentic Testing
 
-### Optional Remediation Workflow
+An independent AI-driven browser testing workflow built with **OpenAI Agents SDK** and **Playwright MCP**, designed to complement traditional Playwright automation.
 
-A controlled **Healer Agent** is planned as a separate, optional remediation workflow.
+Unlike predefined Playwright test scripts, the MCP Agent dynamically observes the browser, selects actions, and evaluates testing goals based on observable evidence.
 
-The core QA workflow ends after execution analysis. A failed test does **not** automatically trigger AI code modification.
+### Key Features
 
-The remediation workflow will be explicitly invoked when needed and will initially be restricted to repairing AI-generated tests without modifying the existing automation framework.
+- **Requirement-driven:** Automatically discovers Markdown testing requirements.
+- **Agentic execution:** AI selects browser actions through Playwright MCP.
+- **Test isolation:** Each requirement runs in an independent MCP/browser session.
+- **Structured results:** JSON output with PASS/FAIL, evidence, and failure classification.
+- **Batch reporting:** Aggregated results with separate requirement result directories.
+- **Error handling:** Workflow exceptions are recorded; subsequent requirements can continue.
 
+### Workflow
+
+```text
+Markdown Requirements
+        ↓
+MCP Orchestrator
+        ↓
+MCP Test Agent + Playwright MCP
+        ↓
+Browser Interaction & Validation
+        ↓
+Structured Results + Batch Summary
+```
 ---
 
 ## Author
