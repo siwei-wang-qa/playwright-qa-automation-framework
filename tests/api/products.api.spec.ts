@@ -1,10 +1,17 @@
 import { test, expect } from '@playwright/test';
 import { apiProductData } from '../../test-data/apiProductData';
 import { productSchema } from '../../schemas/productSchema';
+import fs from 'node:fs';
 
 test.describe('Products API', () => {
 
     test('should return product details for a valid product ID', async ({ request }) => {
+
+        const  accessToken  = JSON.parse(
+            fs.readFileSync('playwright/.auth/api.token.json', 'utf-8')
+        );
+
+        console.log(accessToken)
 
         const response = await request.get(
             `/products/${apiProductData.existingProductId}`

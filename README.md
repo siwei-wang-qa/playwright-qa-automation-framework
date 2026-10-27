@@ -1,141 +1,144 @@
 # Playwright QA Automation Framework
 
-A practical **Playwright + TypeScript** automation framework demonstrating modern QA automation practices across UI, API, integration, CI, and **AI-assisted test automation**.
+A Playwright + TypeScript QA portfolio covering UI, API, integration, and network-mocking tests, with two AI-assisted testing workflows built on the OpenAI Agents SDK.
 
-The project also includes an **AI QA Agent workflow** that analyzes software requirements, creates test plans, discovers relevant framework components, generates Playwright tests, executes them, and analyzes test results.
+## Features
 
-## Highlights
+- Page Object Model, custom fixtures, data-driven tests, and authentication state.
+- API CRUD, authentication, negative testing, and Zod response validation.
+- API + UI integration testing with cleanup.
+- Network mocking, HTML reports, screenshots, videos, and traces.
+- GitHub Actions CI with QA / Staging environment configuration.
+- Requirement-driven AI test generation and browser testing.
 
-- Playwright + TypeScript
-- Page Object Model
-- Custom fixtures
-- `storageState` authentication
-- Data-driven testing
-- UI / API / Integration test separation
-- API CRUD and negative testing
-- Token-based authentication
-- Zod response validation
-- API + UI integration testing
-- Playwright network mocking
-- GitHub Actions CI
-- QA / Staging environments
-- Secrets-based configuration
-- HTML reports and test artifacts
-- **AI-assisted requirement analysis**
-- **AI-generated test planning**
-- **Framework-aware Playwright test generation**
-- **Automated test execution and failure analysis**
-- **Run-isolated AI workflow artifacts**
+## Getting Started
 
----
+Requires Node.js LTS and npm.
 
-## AI-Assisted QA Agent
-
-The project includes an AI-assisted QA workflow built with the OpenAI Agents SDK.
-
-Instead of generating standalone test scripts without framework awareness, the workflow analyzes the existing Playwright framework and reuses available Page Objects, fixtures, and test data.
-
-### Workflow
-
-```text
-Requirement / User Story
-          ↓
-     Planner Agent
-          ↓
-       Test Plan
-          ↓
-Framework Context Selector
-          ↓
-     Generator Agent
-          ↓
- Generated Playwright Test
-          ↓
-   Playwright Runner
-          ↓
-     Analyzer Agent
-          ↓
-   Execution Analysis
+```bash
+npm ci
+npx playwright install chromium
 ```
 
-### Planner Agent
+Copy `.env.example` to `.env` and configure:
 
-Analyzes requirements and acceptance criteria and produces a structured QA test plan.
-
-Key responsibilities:
-
-- Identify required test scenarios
-- Maintain acceptance-criteria traceability
-- Avoid duplicate or overlapping test cases
-- Separate required tests from recommended tests
-- Identify requirement clarifications instead of inventing behavior
-
-### Framework Context Selector
-
-Dynamically inspects the available automation framework and selects only the components relevant to the current test plan.
-
-It can select from:
-
-- Page Objects
-- Playwright fixtures
-- Test data
-
-AI is used for contextual selection, while deterministic Node.js code validates file existence, reads files, and resolves import paths.
-
-### Generator Agent
-
-Generates executable **Playwright + TypeScript** tests from the Planner output.
-
-The Generator is instructed to:
-
-- Reuse existing Page Objects
-- Reuse existing fixtures
-- Reuse existing test data
-- Avoid inventing selectors or framework APIs
-- Generate only required test cases
-- Keep generated code isolated from the existing test suite
-
-### Playwright Runner
-
-Executes the exact generated test using a dedicated Playwright configuration.
-
-The Runner captures:
-
-- Execution status
-- Exit code
-- Standard output
-- Error output
-
-The Runner itself does not interpret failures.
-
-### Analyzer Agent
-
-Analyzes the complete test context:
-
-```text
-Requirement
-+ Test Plan
-+ Generated Test
-+ Playwright Execution Result
+```dotenv
+BASE_URL=https://www.saucedemo.com/
+API_BASE_URL=https://dummyjson.com
+TEST_USERNAME=your_demo_username
+TEST_PASSWORD=your_demo_password
+BOOKER_UI_BASE_URL=https://automationintesting.online
+BOOKER_API_BASE_URL=https://automationintesting.online
 ```
 
-It returns a structured classification:
+AI workflows also require `OPENAI_API_KEY`. OpenAI API usage is billed separately from ChatGPT subscriptions.
 
-- `PASSED`
-- `PRODUCT_BUG`
-- `TEST_CODE_ISSUE`
-- `FRAMEWORK_ISSUE`
-- `ENVIRONMENT_ISSUE`
-- `UNKNOWN`
+Run the existing test suite:
 
-This separates failure diagnosis from test execution.
+```bash
+npx playwright test
+```
 
----
+Run selected projects or view the HTML report:
 
-## Run Isolation
+```bash
+npx playwright test --project=login-tests --project=api
+npx playwright show-report
+```
 
-Each workflow execution receives its own `RunContext`.
+Tests depend on external demo services, so availability and shared test data can affect results.
 
-Runtime artifacts are grouped into an isolated run directory:
+## Test Coverage
+
+| Area | Examples |
+| --- | --- |
+| UI | Login, products, cart, checkout, field validation, totals, receipt download |
+| API | CRUD, authentication, protected endpoints, invalid requests, response schemas |
+| Integration | Create bookings through API, verify in Admin UI, clean up afterward |
+| Network mocking | Mock branding responses and validate error handling |
+
+## AI QA Workflow
+
+The TypeScript Orchestrator coordinates three AI agents and a deterministic Playwright runner:
+
+```text
+Markdown Requirement
+    → Planner Agent
+    → Framework Context Selection
+    → Generator Agent
+    → Playwright Runner
+    → Analyzer Agent
+```
+
+The workflow reuses existing Page Objects, fixtures, and test data. Generated tests are stored separately from the maintained test suite.
+
+The Analyzer returns `PASSED`, `PRODUCT_BUG`, `TEST_CODE_ISSUE`, `FRAMEWORK_ISSUE`, `ENVIRONMENT_ISSUE`, or `UNKNOWN`. Classifications are diagnostic findings and should be reviewed alongside execution evidence.
+
+### Run Requirements
+
+Add Markdown requirements under `ai-agents/requirements/`, including a user story and acceptance criteria.
+
+Run all pending requirements:
+
+```bash
+npx tsx ai-agents/orchestrator.ts
+```
+
+Run one requirement:
+
+```bash
+npx tsx ai-agents/orchestrator.ts --requirement add-to-cart-story.md
+```
+
+Requirements are processed sequentially. A failure in one requirement does not stop the remaining requirements.
+
+### Completion Tracking
+
+A requirement is marked complete only when:
+
+- Playwright execution succeeds.
+- The Analyzer returns `PASSED`.
+
+Completion records are saved locally in:
+
+```text
+ai-agents/runs/requirement-status.json
+```
+
+Completed requirements are skipped on subsequent runs. Tracking uses filenames, so editing a completed file does not automatically rerun it.
+
+### Watch for New Requirements
+
+```bash
+npx tsx ai-agents/watchRequirements.ts
+```
+
+The watcher:
+
+- Checks existing and newly added Markdown files.
+- Waits for matching content hashes across two consecutive scans.
+- Processes requirements sequentially.
+- Attempts each filename at most once per watcher session, including failed attempts.
+
+The current polling interval is two minutes, configured through `pollInterval`. Newly added files typically become eligible after two to four minutes; running workflows can add further delay.
+
+Keep the terminal open and press `Ctrl+C` to stop. Run only one watcher or Orchestrator process at a time.
+
+### Retry a Requirement
+
+For a failed requirement, run the single-requirement command again.
+
+To rerun a completed requirement:
+
+1. Stop the watcher.
+2. Remove only that requirement's entry from `requirement-status.json`.
+3. Run the requirement manually or restart the watcher.
+
+Keep the JSON valid and preserve other completion records. Deleting the entire status file makes all requirements eligible again.
+
+### Run Artifacts
+
+Each workflow execution saves its artifacts in a separate directory:
 
 ```text
 ai-agents/runs/<run-id>/
@@ -145,147 +148,52 @@ ai-agents/runs/<run-id>/
 └── analysis.json
 ```
 
-This prevents artifacts from different requirements or executions from being mixed together.
+The completion record is separate from these per-run directories.
 
-Runtime directories are excluded from Git.
+## MCP-Based Browser Testing
 
----
+A separate workflow uses Playwright MCP to let an AI agent observe the browser, choose actions, and evaluate testing goals directly.
 
-## AI Workflow Design Principles
+```text
+Markdown Testing Goal
+    → MCP Test Agent + Playwright MCP
+    → Browser Interaction
+    → Result JSON + Batch Summary
+```
 
-The AI workflow follows several design principles:
+Run it with:
 
-- **Use AI for reasoning and deterministic code for deterministic operations**
-- Keep workflow orchestration separate from individual agents
-- Pass exact outputs between components instead of searching for the "latest" file
-- Reuse the existing automation framework instead of generating isolated test code
-- Validate AI-selected framework files against the actual repository
-- Keep AI-generated tests isolated from the mature automation suite
-- Do not allow agents to automatically modify existing framework files
+```bash
+npx tsx mcp-testing/orchestrator.ts
+```
 
-The workflow is coordinated by a deterministic TypeScript **Orchestrator**, rather than using an LLM to control predictable workflow sequencing.
+Requirements are read from `mcp-testing/requirements/`; results are saved under `mcp-testing/runs/`.
 
----
-
-## Test Coverage
-
-### UI
-
-- Valid / invalid login
-- Product and cart flows
-- Full checkout
-- Required-field validation
-- Multi-item checkout
-- Remove-item validation
-- Price, tax, and total validation
-- Order completion
-- PDF download and file validation
-
-### API
-
-- GET / POST / PATCH / DELETE
-- 404 and invalid payload testing
-- Login and protected endpoint validation
-- Invalid credentials
-- Missing fields
-- Tampered token scenarios
-- Zod response contract validation
-
-### API + UI Integration
-
-- Authenticate through API
-- Create booking through API
-- Inject token into browser cookie
-- Verify booking in Admin UI
-- Clean up booking through API with `finally`
-
-### Network Mocking
-
-- Intercept browser API requests with `page.route()`
-- Return mocked JSON responses with `route.fulfill()`
-- Validate UI behavior with mocked API data
-- Mock HTTP 500 responses
-- Validate UI fallback and error handling
-
----
+Each requirement uses an independent MCP/browser session. This workflow does not use the AI QA workflow's watcher or completion tracking.
 
 ## Project Structure
 
 ```text
-ai-agents/
-├── agents/          AI Planner, Generator, and Analyzer agents
-├── requirements/    Sample software requirements
-├── runners/         Playwright execution layer
-├── types/           Shared workflow types
-├── utils/           Run context and framework context utilities
-└── runs/            Runtime artifacts (excluded from Git)
-
-config/               Environment configuration
-fixtures/             Custom Playwright fixtures
-helpers/              Reusable utilities and business flows
-pages/                Page Object Model
-schemas/              API schemas
-test-data/            Reusable test data
-tests/ui/             UI tests
-tests/api/            API tests
-tests/integration/    Integration tests
-tests/setup/          Authentication setup
+ai-agents/       AI agents, orchestration, watcher, requirements, and run artifacts
+mcp-testing/     MCP browser-testing workflow and requirements
+config/          Environment configuration
+pages/           Page Objects
+fixtures/        Custom Playwright fixtures
+helpers/         Shared utilities and business flows
+schemas/         API response schemas
+test-data/       Reusable test data
+tests/           UI, API, integration, networking, and authentication setup
 ```
-
----
 
 ## Security
 
-Secrets and local credentials are stored in `.env` and are excluded from Git.
+Keep credentials in the ignored `.env` file and commit only placeholders in `.env.example`.
 
-Runtime AI artifacts under:
-
-```text
-ai-agents/runs/
-```
-
-are also excluded from Git because they may contain generated code, execution logs, or environment-specific information.
-
-Only placeholder configuration should be committed in `.env.example`.
-
----
-
-## MCP-Based Agentic Testing
-
-An independent AI-driven browser testing workflow built with **OpenAI Agents SDK** and **Playwright MCP**, designed to complement traditional Playwright automation.
-
-Unlike predefined Playwright test scripts, the MCP Agent dynamically observes the browser, selects actions, and evaluates testing goals based on observable evidence.
-
-### Key Features
-
-- **Requirement-driven:** Automatically discovers Markdown testing requirements.
-- **Agentic execution:** AI selects browser actions through Playwright MCP.
-- **Test isolation:** Each requirement runs in an independent MCP/browser session.
-- **Structured results:** JSON output with PASS/FAIL, evidence, and failure classification.
-- **Batch reporting:** Aggregated results with separate requirement result directories.
-- **Error handling:** Workflow exceptions are recorded; subsequent requirements can continue.
-
-### Workflow
-
-```text
-Markdown Requirements
-        ↓
-MCP Orchestrator
-        ↓
-MCP Test Agent + Playwright MCP
-        ↓
-Browser Interaction & Validation
-        ↓
-Structured Results + Batch Summary
-```
----
+Authentication state, test outputs, and AI runtime artifacts are excluded from Git. A sanitized sample AI run is retained for demonstration. Review generated artifacts before sharing them.
 
 ## Author
 
-**Si Wei Wang**  
-QA Automation Engineer | QA Leadership
+**Si Wei Wang** — QA Automation Engineer | QA Leadership
 
-GitHub: https://github.com/siwei-wang-qa  
-LinkedIn: https://www.linkedin.com/in/si-wei-wang-1432483a
-
-Personal QA automation portfolio project demonstrating hands-on experience with Playwright, TypeScript, API testing, integration testing, CI, and AI-assisted QA automation.
+[GitHub](https://github.com/siwei-wang-qa) ·
+[LinkedIn](https://www.linkedin.com/in/si-wei-wang-1432483a)

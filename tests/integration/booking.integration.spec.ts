@@ -1,7 +1,6 @@
 import { expect } from '@playwright/test';
 import { bookerData } from '../../test-data/bookerData';
 import { test } from '../../fixtures/testFixtures';
-import { log } from 'node:console';
 import { env } from '../../config/env';
 
 test.describe('Booking API + UI Integration', () => {
@@ -26,9 +25,7 @@ test.describe('Booking API + UI Integration', () => {
                         },
                     })
                     const loginBody = await response.json();
-                    console.log(loginBody);
                     token = loginBody.token;
-                    console.log(loginBody.token);
                 })
 
                 await test.step('API booking a room', async () => {

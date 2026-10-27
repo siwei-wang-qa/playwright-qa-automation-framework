@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { apiAuthData } from '../../test-data/apiAuthData';
+import fs from 'node:fs';
 
 test.describe('Authentication API', () => {
 
@@ -15,12 +16,17 @@ test.describe('Authentication API', () => {
         expect(loginResponse.status()).toBe(200);
         expect(loginResponse.ok()).toBeTruthy();
 
+
         const loginBody = await loginResponse.json();
 
         expect(loginBody.username).toBe(apiAuthData.validUser.username);
         expect(loginBody.accessToken).toBeTruthy();
 
         const accessToken = loginBody.accessToken;
+        fs.writeFileSync(
+            'playwright/.auth/api.token.json',
+            JSON.stringify({ accessToken })
+        );
 
         const userResponse = await request.get('/auth/me', {
             headers: {

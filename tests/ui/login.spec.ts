@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { test } from '../../fixtures/testFixtures';
 import { users } from '../../test-data/users';
+import { LoginPage } from '../../pages/LoginPage';
 
 test.describe('Login tests', () => {
 
