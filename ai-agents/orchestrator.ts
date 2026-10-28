@@ -5,9 +5,14 @@ import { planRequirement } from './agents/plannerAgent';
 import { generateTests } from './agents/generatorAgent';
 import { runPlaywright } from './runners/playwrightRunner';
 import { analyzeRun } from './agents/analyzerAgent';
+
 import {
-    loadCompletedRequirements,
-    saveCompletedRequirements,
+    loadRequirementStatuses,
+    saveRequirementStatuses,
+} from './utils/requirementStatus';
+import type {
+    RequirementStatus,
+    WorkflowStage,
 } from './utils/requirementStatus';
 
 /**
@@ -16,30 +21,27 @@ import {
  * Coordinates the QA automation workflow for pending requirements.
  *
  * Responsibilities:
- * - Discovers Markdown requirement files.
- * - Loads completion records and skips completed requirements.
- * - Processes pending requirements sequentially.
- * - Creates a shared RunContext for each workflow execution.
+ * - Discovers Markdown requirements or selects one by filename.
+ * - Loads requirement statuses, including legacy completion records.
+ * - Skips completed requirements and allows failed requirements to retry.
+ * - Processes requirements sequentially with isolated workflow failures.
+ * - Tracks the current stage and creates a shared RunContext.
  * - Invokes Planner, Generator, Runner, and Analyzer in sequence.
- * - Passes exact outputs between workflow components.
- * - Persists execution and analysis artifacts inside each run directory.
- * - Records completion only when Playwright succeeds and Analyzer returns PASSED.
- * - Isolates failures so remaining requirements can still be processed.
- * - Leaves unsuccessful requirements pending for the next invocation.
+ * - Persists execution artifacts and the latest requirement status.
+ * - Distinguishes workflow exceptions from unsuccessful test outcomes.
  *
- * Completion is tracked by filename, so edits to completed files do not
- * automatically trigger another run. Requirement discovery happens once
- * per invocation; this orchestrator does not watch for new files.
+ * Completion requires successful Playwright execution and a PASSED analysis.
+ * Statuses are tracked by filename; editing completed files does not rerun them.
+ * Retries start from planning rather than resuming an interrupted stage.
  *
- * The Orchestrator owns workflow sequencing and artifact coordination.
- * Individual components remain reusable and do not discover or invoke
- * other workflow components themselves.
+ * Requirement discovery occurs once per invocation. File monitoring is
+ * handled separately by watchRequirements.ts.
  */
 
 async function main() {
     const requirementsDir = 'ai-agents/requirements';
 
-    // Optionally process a single requirement supplied by the watcher.
+    // Optionally process one requirement supplied by the watcher or CLI.
     const requirementIndex = process.argv.indexOf('--requirement');
 
     const selectedRequirement = requirementIndex === -1
@@ -53,7 +55,6 @@ async function main() {
         throw new Error('--requirement requires a Markdown filename.');
     }
 
-    // Discover Markdown files and optionally select one requirement.
     const requirementFiles = (await readdir(requirementsDir))
         .filter(file => file.endsWith('.md'))
         .filter(file => !selectedRequirement || file === selectedRequirement)
@@ -63,26 +64,28 @@ async function main() {
         throw new Error(`Requirement not found: ${selectedRequirement}`);
     }
 
-    // Load records of previously completed requirements.
-    const completed = await loadCompletedRequirements();
+    let statuses = await loadRequirementStatuses();
 
     for (const requirementFile of requirementFiles) {
-        // Skip requirements that have already completed successfully.
-        if (Object.hasOwn(completed, requirementFile)) {
+        // Failed requirements remain eligible for another invocation.
+        if (statuses[requirementFile]?.status === 'completed') {
             console.log(
                 `Skipping completed requirement: ${requirementFile}`
             );
             continue;
         }
 
-        // Handle each requirement independently so failures do not stop the batch.
+        let stage: WorkflowStage = 'prepare';
+        let runId: string | undefined;
+        let result: RequirementStatus;
+
         try {
             const requirementPath = path.join(
                 requirementsDir,
                 requirementFile
             );
 
-            const requirementName = path.parse(requirementPath).name;
+            const requirementName = path.parse(requirementFile).name;
 
             const requirement = await readFile(
                 requirementPath,
@@ -94,24 +97,34 @@ async function main() {
                 requirementPath
             );
 
-            console.log(`Workflow started: ${runContext.runId}`);
+            runId = runContext.runId;
 
-            // Generate a test plan from the requirement.
+            console.log(`Workflow started: ${runId}`);
+
+            // Generate the test plan.
+            stage = 'plan';
+
             const plannerResult = await planRequirement(
                 requirement,
                 runContext
             );
 
-            // Generate test code from the test plan.
+            // Select framework context and generate test code.
+            stage = 'generate';
+
             const generatorResult = await generateTests(
                 plannerResult.testPlan,
                 runContext
             );
 
-            // Execute the generated tests.
+            // Execute the generated test.
+            stage = 'run';
+
             const runnerResult = await runPlaywright(
                 generatorResult.testSpecPath
             );
+
+            stage = 'save-results';
 
             await writeFile(
                 path.join(runContext.runDir, 'runner-result.json'),
@@ -119,13 +132,17 @@ async function main() {
                 'utf-8'
             );
 
-            // Analyze the test execution results.
+            // Analyze execution evidence, including failed test runs.
+            stage = 'analyze';
+
             const analysis = await analyzeRun({
                 requirement,
                 testPlan: plannerResult.testPlan,
                 generatedTest: generatorResult.testSpec,
                 runnerResult,
             });
+
+            stage = 'save-results';
 
             await writeFile(
                 path.join(runContext.runDir, 'analysis.json'),
@@ -135,48 +152,83 @@ async function main() {
 
             console.log('Analysis:', analysis);
 
-            // Mark completion only when execution and analysis both pass.
             if (
                 runnerResult.success &&
                 analysis.classification === 'PASSED'
             ) {
-                const updatedCompleted = {
-                    ...completed,
-                    [requirementFile]: {
-                        runId: runContext.runId,
-                    },
+                result = {
+                    status: 'completed',
+                    runId,
+                    updatedAt: new Date().toISOString(),
                 };
-
-                await saveCompletedRequirements(updatedCompleted);
-
-                // Update the in-memory records only after saving succeeds.
-                Object.assign(completed, updatedCompleted);
-
-                console.log(
-                    `Requirement completed: ${requirementFile}`
-                );
             } else {
-                console.log(
-                    `Requirement not completed: ${requirementFile}; ` +
-                    'will retry next run.'
-                );
-
-                // Report an unsuccessful outcome without stopping the batch.
-                process.exitCode = 1;
+                // The workflow finished, but its outcome did not pass.
+                // This does not imply that the Analyzer itself failed.
+                result = {
+                    status: 'failed',
+                    failureType: 'TEST_RESULT',
+                    stage: runnerResult.success ? 'analyze' : 'run',
+                    runId,
+                    classification: analysis.classification,
+                    error: runnerResult.success
+                        ? analysis.reason
+                        : `Playwright exited with code ${runnerResult.exitCode}. ` +
+                          analysis.reason,
+                    updatedAt: new Date().toISOString(),
+                };
             }
         } catch (error) {
+            // Record the stage where execution was interrupted.
+            const message = error instanceof Error
+                ? error.message
+                : String(error);
+
+            result = {
+                status: 'failed',
+                failureType: 'WORKFLOW_ERROR',
+                stage,
+                runId,
+                error: message,
+                updatedAt: new Date().toISOString(),
+            };
+
             console.error(
-                `Requirement workflow failed: ${requirementFile}`
+                `Requirement workflow failed: ${requirementFile} ` +
+                `(stage: ${stage})`
             );
             console.error(error);
+        }
 
-            // Continue processing while reporting failure when the process exits.
+        const updatedStatuses = {
+            ...statuses,
+            [requirementFile]: result,
+        };
+
+        // Stop the batch if status persistence fails.
+        // Do not report completion or start more workflows without saved state.
+        await saveRequirementStatuses(updatedStatuses);
+
+        // Update memory only after the state file has been saved.
+        statuses = updatedStatuses;
+
+        if (result.status === 'completed') {
+            console.log(
+                `Requirement completed: ${requirementFile}`
+            );
+        } else {
+            console.log(
+                `Requirement failed: ${requirementFile} ` +
+                `(type: ${result.failureType}, stage: ${result.stage}). ` +
+                'Saved for manual retry.'
+            );
+
+            // Continue the batch while reporting an unsuccessful overall exit.
             process.exitCode = 1;
         }
     }
 }
 
-// Handle errors outside the loop, such as loading records or reading the directory.
+// Handle discovery, state loading, and state persistence errors.
 main().catch(error => {
     console.error('QA Agent workflow failed:');
     console.error(error);

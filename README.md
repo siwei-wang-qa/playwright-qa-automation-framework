@@ -92,20 +92,34 @@ npx tsx ai-agents/orchestrator.ts --requirement add-to-cart-story.md
 
 Requirements are processed sequentially. A failure in one requirement does not stop the remaining requirements.
 
-### Completion Tracking
+### Requirement Status Tracking
 
-A requirement is marked complete only when:
-
-- Playwright execution succeeds.
-- The Analyzer returns `PASSED`.
-
-Completion records are saved locally in:
+The Orchestrator saves the latest status of each requirement in:
 
 ```text
 ai-agents/runs/requirement-status.json
 ```
 
-Completed requirements are skipped on subsequent runs. Tracking uses filenames, so editing a completed file does not automatically rerun it.
+| Status | Behavior |
+| --- | --- |
+| No record | Execute the workflow |
+| `completed` | Skip the requirement |
+| `failed` | Allow execution on a subsequent invocation |
+
+A requirement is completed only when Playwright execution succeeds and the Analyzer returns `PASSED`.
+
+Records include the status, run ID when available, and update time. Failed records also capture the failure type, stage, and error or analysis reason.
+
+Two failure types are distinguished:
+
+- **`WORKFLOW_ERROR`**: An exception interrupts preparation, planning, generation, execution, analysis, or artifact saving.
+- **`TEST_RESULT`**: Execution and analysis finish, but the result does not meet the completion criteria.
+
+Stages are `prepare`, `plan`, `generate`, `run`, `analyze`, and `save-results`. An unsuccessful test outcome is attributed to `run`; successful execution with a non-passing analysis is attributed to `analyze`.
+
+Workflow failures are recorded without stopping subsequent requirements. If the status file cannot be saved, the Orchestrator invocation stops.
+
+Tracking uses filenames, so editing a completed file does not automatically rerun it. Legacy records containing only `runId` remain recognized as completed; their unknown update time is represented as `null`.
 
 ### Watch for New Requirements
 
@@ -126,7 +140,15 @@ Keep the terminal open and press `Ctrl+C` to stop. Run only one watcher or Orche
 
 ### Retry a Requirement
 
-For a failed requirement, run the single-requirement command again.
+For a failed requirement, stop the watcher if it is running, then execute:
+
+```bash
+npx tsx ai-agents/orchestrator.ts --requirement add-to-cart-story.md
+```
+
+Failed records do not prevent retries. Each retry starts from planning and replaces the requirement's latest status; previous run artifacts remain in their own directories.
+
+Restarting the watcher also makes failed requirements eligible again. Automatic retries within the same watcher session and resuming from an interrupted stage are not implemented.
 
 To rerun a completed requirement:
 
@@ -134,7 +156,7 @@ To rerun a completed requirement:
 2. Remove only that requirement's entry from `requirement-status.json`.
 3. Run the requirement manually or restart the watcher.
 
-Keep the JSON valid and preserve other completion records. Deleting the entire status file makes all requirements eligible again.
+Keep the JSON valid and preserve other records. Deleting the entire status file makes all requirements eligible again.
 
 ### Run Artifacts
 
