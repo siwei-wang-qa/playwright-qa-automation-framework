@@ -3,7 +3,11 @@ import { bookerData } from '../../test-data/bookerData';
 import { test } from '../../fixtures/testFixtures';
 import { env } from '../../config/env';
 
-test.describe('Booking API + UI Integration', () => {
+
+// Temporarily skipped: the external demo service returns HTTP 500
+// when deleting bookings, leaving data that causes subsequent 409 conflicts.
+// Restore after the service recovers and booking cleanup is verified.
+test.describe.skip('Booking API + UI Integration', () => {
     test('should create a booking via API, verify it in Admin UI, and clean it up',
         {
             tag: ['@debug']
